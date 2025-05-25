@@ -6,5 +6,5 @@ const BASE_URL = "/auth";
 export const postLogin = async (payload: ILoginPayload) =>
   api.post<IApiResponse<ILoginData>>(`${BASE_URL}/login`, payload);
 
-export const postRegister = async (payload: IRegisterPayload) =>
+export const postRegister = async (payload: FormData) =>
   api.post<IApiResponse<ILoginData>>(`${BASE_URL}/register`, payload);

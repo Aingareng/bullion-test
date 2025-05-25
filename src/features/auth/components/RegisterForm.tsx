@@ -17,14 +17,16 @@ import {
   SelectContent,
   SelectItem,
   SelectValue,
+  SelectTrigger,
 } from "@/shared/components/ui/select";
-import { SelectTrigger } from "@radix-ui/react-select";
-import DateInput from "@/shared/components/molecules/Popover";
-import { CalendarIcon } from "lucide-react";
+
+import Popover from "@/shared/components/molecules/Popover";
+import { CalendarDays, CloudUpload, Eye } from "lucide-react";
 import { Calendar } from "@/shared/components/ui/calendar";
 import { cn } from "@/shared/libs/utils";
 import { formatTanggalIndonesia } from "@/shared/utils/formatDate";
 import useAuth from "../hooks/useAuth";
+import objectToFormData from "@/shared/utils/objectToFormData";
 
 export default function RegisterForm() {
   const { isPending, registerMutation } = useAuth();
@@ -44,22 +46,19 @@ export default function RegisterForm() {
     },
   });
 
-  form.getValues("date_of_birth");
-
   function onSubmit(data: z.infer<typeof registerScema>) {
-    console.log(data);
-    registerMutation({
+    console.log(data.photo as File);
+    const payload = objectToFormData({
       ...data,
       gender: data.gender as GenderType,
-      date_of_birth: data.date_of_birth
-        ? formatTanggalIndonesia(data.date_of_birth.toString())
-        : "",
+      date_of_birth: data.date_of_birth ?? "",
     });
+    registerMutation(payload);
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 w-max">
         <div className="grid grid-cols-2 gap-3">
           <FormField
             control={form.control}
@@ -98,7 +97,7 @@ export default function RegisterForm() {
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger
-                      className={`border p-[0.3em_1.2em] rounded-md text-left font-normal text-muted-foreground cursor-pointer ${
+                      className={`border p-[0.3em_1.2em] rounded-md text-left font-normal w-full text-muted-foreground cursor-pointer ${
                         form.formState.errors.gender
                           ? "border-red-500"
                           : "border-gray-300"
@@ -123,7 +122,7 @@ export default function RegisterForm() {
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Tanggal Lahir</FormLabel>
-                <DateInput
+                <Popover
                   FormControl={
                     <FormControl>
                       <Button
@@ -138,12 +137,13 @@ export default function RegisterForm() {
                         ) : (
                           <span>Pilih tanggal lahir</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        <CalendarDays className="ml-auto h-4 w-4 text-primary" />
                       </Button>
                     </FormControl>
                   }
                 >
                   <Calendar
+                    captionLayout="dropdown"
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
@@ -152,7 +152,7 @@ export default function RegisterForm() {
                     }
                     initialFocus
                   />
-                </DateInput>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
@@ -212,6 +212,7 @@ export default function RegisterForm() {
                     type="password"
                     placeholder="Masukan password"
                     {...field}
+                    icon={<Eye size={18} className="text-primary" />}
                   />
                 </FormControl>
                 <FormMessage />
@@ -230,6 +231,7 @@ export default function RegisterForm() {
                     type="password"
                     placeholder="Masukan konfirmasi password"
                     {...field}
+                    icon={<Eye size={18} className="text-primary" />}
                   />
                 </FormControl>
                 <FormMessage />
@@ -249,16 +251,19 @@ export default function RegisterForm() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      field.onChange(e.target.files[0]);
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      field.onChange(file);
                     }
                   }}
+                  icon={<CloudUpload size={18} className="text-primary" />}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <Button
           type="submit"
           className="w-full cursor-pointer"

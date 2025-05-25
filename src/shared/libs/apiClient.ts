@@ -56,10 +56,16 @@ export class ApiClient {
     data: unknown,
     options: RequestInit = {}
   ) => {
+    const isFormData =
+      typeof FormData !== "undefined" && data instanceof FormData;
     return await this.request<ResponseType>(endpoint, {
       ...options,
       method: "POST",
-      body: JSON.stringify(data),
+      body: isFormData ? data : JSON.stringify(data),
+      headers: {
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
+        ...options.headers,
+      },
     });
   };
   public delete = async <ResponseType>(

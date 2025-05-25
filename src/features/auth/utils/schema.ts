@@ -16,7 +16,14 @@ export const registerScema = z
       .nonempty("Email tidak boleh kosong")
       .email("Email tidak valid"),
     gender: z.string().nonempty("Jenis kelamin tidak boleh kosong"),
-    date_of_birth: z.date({ invalid_type_error: "Tanggal lahir tidak valid" }),
+    date_of_birth: z
+      .date({
+        invalid_type_error: "Tanggal lahir tidak valid",
+        required_error: "Tanggal lahir wajib diisi",
+      })
+      .refine((val) => new Date(val) <= new Date(), {
+        message: "Tanggal lahir tidak boleh di masa depan",
+      }),
     // z.string().nonempty("Tanggal lahir tidak boleh kosong"),
     password: z
       .string()
@@ -33,6 +40,7 @@ export const registerScema = z
       ),
     confirm_password: z
       .string()
+      .nonempty("Konfirmasi password wajib diisi")
       .min(8, "Konfirmasi password minimal 8 karakter"),
     address: z.string().nonempty("Alamat tidak boleh kosong"),
     phone: z

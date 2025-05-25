@@ -4,9 +4,9 @@ export default function AuthLayout() {
   const location = useLocation();
   const isRegisterPage = location.pathname.startsWith("/register");
   return (
-    <div className="grid min-h-svh min-w-dvw lg:grid-cols-[548px_auto] ">
+    <div className="grid min-h-screen overflow-x-hidden  w-screen lg:grid-cols-[548px_auto] ">
       <div
-        className={`${
+        className={` overflow-hidden ${
           isRegisterPage ? "bg-register-background" : "bg-primary"
         } relative hidden bg-muted lg:block`}
       >

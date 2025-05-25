@@ -11,7 +11,7 @@ export default function useAuth() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: (payload: IRegisterPayload) => postRegister(payload),
+    mutationFn: (payload: FormData) => postRegister(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
