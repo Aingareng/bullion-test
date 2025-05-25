@@ -10,34 +10,34 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "../ui/sidebar";
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import { Square } from "lucide-react";
 import BuillionLogo from "@/assets/bullion-ecosystem.png";
 
 const items = [
   {
-    title: "Home",
+    title: "User Aktif",
     url: "#",
-    icon: Home,
+    icon: Square,
   },
   {
-    title: "Inbox",
+    title: "Menu 2",
     url: "#",
-    icon: Inbox,
+    icon: Square,
   },
   {
-    title: "Calendar",
+    title: "Menu 3",
     url: "#",
-    icon: Calendar,
+    icon: Square,
   },
   {
-    title: "Search",
+    title: "Menu 4",
     url: "#",
-    icon: Search,
+    icon: Square,
   },
   {
-    title: "Settings",
+    title: "Menu 5",
     url: "#",
-    icon: Settings,
+    icon: Square,
   },
 ];
 
@@ -56,14 +56,14 @@ export default function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="px-0">
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link to={item.url}>
-                      <item.icon className="h-5 w-5 mr-2" />
+                      <item.icon className="h-5 w-5 mr-2 fill-[#7e1810] stroke-[#7e1810]" />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
