@@ -4,6 +4,7 @@ import RegisterPage from "@/pages/auth/RegisterPage";
 import DashboardLayout from "@/pages/dashboard/DashboardLayout";
 import HomePage from "@/pages/dashboard/HomePage";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Authenticated from "./middleware";
 
 const Router = () => {
   return (
@@ -14,8 +15,10 @@ const Router = () => {
           <Route path="/register" element={<RegisterPage />} />
         </Route>
 
-        <Route element={<DashboardLayout />}>
-          <Route path="/" element={<HomePage />} />
+        <Route element={<Authenticated />}>
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<HomePage />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

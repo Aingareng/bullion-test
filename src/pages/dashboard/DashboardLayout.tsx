@@ -1,6 +1,7 @@
 import AppSidebar from "@/shared/components/organisms/AppSidebar";
 import DashboardHeader from "@/shared/components/organisms/DashboardHeader";
 import { SidebarProvider } from "@/shared/components/ui/sidebar";
+import { Toaster } from "@/shared/components/ui/sonner";
 import { Outlet } from "react-router-dom";
 
 export default function DashboardLayout() {
@@ -12,6 +13,7 @@ export default function DashboardLayout() {
           <DashboardHeader />
           <Outlet />
         </main>
+        <Toaster />
       </div>
     </SidebarProvider>
   );

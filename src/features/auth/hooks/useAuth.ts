@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postLogin, postRegister } from "../service/api";
+import type { ILoginPayload } from "../types/auth";
 
 export default function useAuth() {
   const queryClient = useQueryClient();
@@ -19,7 +20,7 @@ export default function useAuth() {
 
   return {
     loginMutation: loginMutation.mutateAsync,
-    registerMutation: registerMutation.mutate,
+    registerMutation: registerMutation.mutateAsync,
     isPending: loginMutation.isPending || registerMutation.isPending,
     isError: loginMutation.isError || registerMutation.isError,
     error: loginMutation.error || registerMutation.error,

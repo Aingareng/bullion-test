@@ -5,7 +5,7 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
 export default function EditUser() {
   return (
-    <DialogContent title="Edit User" className="w-[464px]">
+    <DialogContent title="Edit User" className="w-max">
       <ScrollArea className="h-[579px] w-full">
         <Card className="shadow-none border-none">
           <CardContent>

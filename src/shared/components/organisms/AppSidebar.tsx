@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -8,10 +8,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from "../ui/sidebar";
-import { Square } from "lucide-react";
+import { Menu, Square } from "lucide-react";
 import BuillionLogo from "@/assets/bullion-ecosystem.png";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import localStorageUtils from "@/shared/utils/storage";
+import type { ILoginData } from "@/features/auth/types/auth";
 
 const items = [
   {
@@ -42,6 +51,8 @@ const items = [
 ];
 
 export default function AppSidebar() {
+  const user = localStorageUtils.get<ILoginData>("USER");
+  const navigate = useNavigate();
   return (
     <Sidebar>
       <SidebarHeader>
@@ -51,7 +62,18 @@ export default function AppSidebar() {
             alt="bullion-logo"
             className="w-[104px] h-[32px]"
           />
-          <SidebarTrigger />
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Menu />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/login")}>
+                Keluar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </header>
       </SidebarHeader>
 

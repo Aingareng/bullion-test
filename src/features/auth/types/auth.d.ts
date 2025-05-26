@@ -1,15 +1,15 @@
-interface ILoginPayload {
+export interface ILoginPayload {
   email: string;
   password: string;
 }
-interface ILoginData {
+export interface ILoginData {
   name: string;
   email: string;
   token: string;
 }
 
-type GenderType = "male" | "female" | "other";
-interface IRegisterPayload {
+export type GenderType = "male" | "female" | "other";
+export interface IRegisterPayload {
   first_name: sting;
   last_name: string;
   gender: GenderType;

@@ -4,7 +4,7 @@ export default interface IApiResponse<T> {
   status: number;
 }
 
-const HTTP_STATUS_CODE = {
+export const HTTP_STATUS_CODE = {
   OK: 200,
   CREATED: 201,
   ACCEPTED: 202,

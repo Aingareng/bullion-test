@@ -1,3 +1,4 @@
+import { Toaster } from "@/shared/components/ui/sonner";
 import { Outlet, useLocation } from "react-router-dom";
 
 export default function AuthLayout() {
@@ -24,6 +25,7 @@ export default function AuthLayout() {
           </div>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 }

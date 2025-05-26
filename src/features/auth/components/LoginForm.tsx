@@ -13,9 +13,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import useAuth from "../hooks/useAuth";
+import { Eye, EyeClosed } from "lucide-react";
+import { useState } from "react";
+import { HTTP_STATUS_CODE } from "@/shared/types/apiResponse";
+import { useNavigate } from "react-router-dom";
+import localStorageUtils from "@/shared/utils/storage";
+import type { ILoginData } from "../types/auth";
+import { toast } from "sonner";
 
 export default function LoginForm() {
   const { loginMutation, isPending } = useAuth();
+  const navigate = useNavigate();
+  const [showPwd, setShowPwd] = useState(false);
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -24,9 +33,36 @@ export default function LoginForm() {
     },
   });
 
-  function onSubmit(value: z.infer<typeof loginSchema>) {
-    console.log(value);
-    loginMutation(value);
+  async function onSubmit(value: z.infer<typeof loginSchema>) {
+    const result = await loginMutation(value);
+
+    if (result && result.status === HTTP_STATUS_CODE.OK) {
+      localStorageUtils.set<ILoginData>("USER", result.data);
+      toast("Berhasil masuk");
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
+    } else {
+      toast(result.message || "Gagal masuk");
+    }
+  }
+
+  let passwordIcon = (
+    <Eye
+      size={18}
+      className="text-primary"
+      onClick={() => setShowPwd((prev) => !prev)}
+    />
+  );
+
+  if (showPwd) {
+    passwordIcon = (
+      <EyeClosed
+        size={18}
+        className="text-primary"
+        onClick={() => setShowPwd((prev) => !prev)}
+      />
+    );
   }
 
   return (
@@ -53,7 +89,12 @@ export default function LoginForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" {...field} placeholder="Masuka Email" />
+                <Input
+                  type={showPwd ? "text" : "password"}
+                  {...field}
+                  placeholder="Masuka Password"
+                  icon={passwordIcon}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

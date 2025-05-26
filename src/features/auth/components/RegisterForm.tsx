@@ -21,17 +21,48 @@ import {
 } from "@/shared/components/ui/select";
 
 import Popover from "@/shared/components/molecules/Popover";
-import { CalendarDays, CloudUpload, Eye } from "lucide-react";
+import { CalendarDays, CloudUpload, Eye, EyeClosed } from "lucide-react";
 import { Calendar } from "@/shared/components/ui/calendar";
 import { cn } from "@/shared/libs/utils";
 import { formatTanggalIndonesia } from "@/shared/utils/formatDate";
 import useAuth from "../hooks/useAuth";
 import objectToFormData from "@/shared/utils/objectToFormData";
+import { useLocation, useNavigate } from "react-router-dom";
+import type { GenderType } from "../types/auth";
+import useUser from "@/features/dashboard/hooks/useUser";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/reduxHook";
+import type { TypeUserUpdatePayload } from "@/features/dashboard/types/dashboard";
+import { useEffect, useState } from "react";
+import splitFullName from "@/shared/utils/splitFullName";
+import { fileToBase64 } from "@/shared/utils/uploadFileConverter";
+import { useFileInput } from "@/shared/hooks/useFileInput";
+import { UpdateUserSchema } from "@/features/dashboard/utils/schema";
+import { HTTP_STATUS_CODE } from "@/shared/types/apiResponse";
+import { toast } from "sonner";
+import { closeDialog } from "@/features/dashboard/stores/dialogStore";
 
 export default function RegisterForm() {
+  const { pathname } = useLocation();
+  const isRegisterPage = pathname.startsWith("/register");
   const { isPending, registerMutation } = useAuth();
-  const form = useForm<z.infer<typeof registerScema>>({
-    resolver: zodResolver(registerScema),
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  const user = useAppSelector((s) => s.users.user);
+  const { updateUser, isPendingMutation } = useUser(undefined, false);
+  const {
+    fileName: selectedPhotoName,
+    // previewUrl,
+    handleChange: handlePreviewUpdate,
+    setFileName,
+  } = useFileInput();
+
+  const formSchema = isRegisterPage ? registerScema : UpdateUserSchema;
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -40,20 +71,115 @@ export default function RegisterForm() {
       date_of_birth: undefined,
       confirm_password: "",
       first_name: "",
-      gender: "",
+      gender: !isRegisterPage ? user?.gender : undefined,
       last_name: "",
       photo: undefined as File | undefined,
     },
   });
 
-  function onSubmit(data: z.infer<typeof registerScema>) {
-    console.log(data.photo as File);
-    const payload = objectToFormData({
-      ...data,
-      gender: data.gender as GenderType,
-      date_of_birth: data.date_of_birth ?? "",
-    });
-    registerMutation(payload);
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    if (isRegisterPage) {
+      const payload = objectToFormData({
+        ...data,
+        gender: data.gender as GenderType,
+        date_of_birth: new Date(data.date_of_birth).toISOString() || "",
+      });
+      const response = await registerMutation(payload);
+
+      if (response && response.status === HTTP_STATUS_CODE.OK) {
+        toast("Pendaftaran berhasil, silakan masuk");
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      } else {
+        toast(response.message || "Pendaftaran gagal");
+      }
+    } else {
+      const photo = data.photo ? await fileToBase64(data.photo as File) : "";
+      const updatePayload: TypeUserUpdatePayload = {
+        address: data.address,
+        date_of_birth: new Date(data.date_of_birth).toISOString() || "",
+        email: data.email,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        gender: data.gender as GenderType,
+        phone: data.phone,
+        ...(data.password && {
+          password: data.password,
+        }),
+        ...(data.photo && {
+          photo,
+        }),
+      };
+
+      const response = await updateUser({
+        id: user?._id ?? "",
+        payload: updatePayload,
+      });
+
+      if (response && response.status === HTTP_STATUS_CODE.OK) {
+        toast("Data berhasil diperbarui");
+        dispatch(closeDialog());
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (!isRegisterPage && user) {
+      setFileName(user.photo ? "Foto lama tersedia" : "");
+
+      const { firstName, lastName } = splitFullName(user.name);
+      form.reset({
+        email: user.email || "",
+        address: user.address || "",
+        phone: user.phone || "",
+        date_of_birth: user.date_of_birth
+          ? new Date(user.date_of_birth)
+          : undefined,
+        confirm_password: "",
+        password: "",
+        first_name: firstName || "",
+        last_name: lastName || "",
+        gender: user.gender || "male",
+        photo: undefined,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRegisterPage, user, form]);
+
+  let passwordIcon = (
+    <Eye
+      size={18}
+      className="text-primary"
+      onClick={() => setShowPwd((prev) => !prev)}
+    />
+  );
+
+  if (showPwd) {
+    passwordIcon = (
+      <EyeClosed
+        size={18}
+        className="text-primary"
+        onClick={() => setShowPwd((prev) => !prev)}
+      />
+    );
+  }
+  let confirmPwdIcon = (
+    <Eye
+      size={18}
+      className="text-primary"
+      onClick={() => setShowConfirm((prev) => !prev)}
+    />
+  );
+
+  if (showConfirm) {
+    confirmPwdIcon = (
+      <EyeClosed
+        size={18}
+        className="text-primary"
+        onClick={() => setShowConfirm((prev) => !prev)}
+      />
+    );
   }
 
   return (
@@ -200,7 +326,7 @@ export default function RegisterForm() {
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-5">
           <FormField
             control={form.control}
             name="password"
@@ -209,10 +335,10 @@ export default function RegisterForm() {
                 <FormLabel>Kata Sandi</FormLabel>
                 <FormControl>
                   <Input
-                    type="password"
+                    type={showPwd ? "text" : "password"}
                     placeholder="Masukan password"
                     {...field}
-                    icon={<Eye size={18} className="text-primary" />}
+                    icon={passwordIcon}
                   />
                 </FormControl>
                 <FormMessage />
@@ -228,10 +354,10 @@ export default function RegisterForm() {
                 <FormLabel>Konfirmasi Password</FormLabel>
                 <FormControl>
                   <Input
-                    type="password"
+                    type={showPwd ? "text" : "password"}
                     placeholder="Masukan konfirmasi password"
                     {...field}
-                    icon={<Eye size={18} className="text-primary" />}
+                    icon={confirmPwdIcon}
                   />
                 </FormControl>
                 <FormMessage />
@@ -250,15 +376,24 @@ export default function RegisterForm() {
                 <Input
                   type="file"
                   accept="image/*"
+                  placeholder={selectedPhotoName || "Pilih file"}
+                  icon={<CloudUpload size={18} className="text-primary" />}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      field.onChange(file);
+                      field.onChange(file); // update form value
+                      handlePreviewUpdate(file); // update UI preview
                     }
                   }}
-                  icon={<CloudUpload size={18} className="text-primary" />}
                 />
               </FormControl>
+              {/* {previewUrl && (
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-24 h-24 mt-2 rounded-md object-cover"
+                />
+              )} */}
               <FormMessage />
             </FormItem>
           )}
@@ -267,10 +402,10 @@ export default function RegisterForm() {
         <Button
           type="submit"
           className="w-full cursor-pointer"
-          variant="register"
-          disabled={isPending}
+          variant={isRegisterPage ? "register" : "default"}
+          disabled={isRegisterPage ? isPending : isPendingMutation}
         >
-          Tambah
+          {isRegisterPage ? "Tambah" : "Simpan"}
         </Button>
       </form>
     </Form>
